@@ -1,22 +1,36 @@
-class Node
-  attr_reader :x, :y, :path
+class Board
+  SIZE = 8.freeze
 
-  def initialize(x, y, path = [])
-    @x = x
-    @y = y
-    @path = path
+  def self.valid_move?(x, y)
+    x.between?(0, SIZE - 1) && y.between?(0, SIZE - 1)
   end
 end
 
-def in_bounds?(x, y)
-  x.between?(0, 7) && y.between?(0, 7)
+class Node
+  attr_reader :x, :y, :parent
+
+  def initialize(x, y, parent = nil)
+    @x = x
+    @y = y
+    @parent = parent
+  end
+
+  def path
+    path_list = [[x, y]]
+    root = @parent
+    until root.nil?
+      path_list.unshift([root.x, root.y])
+      root = root.parent
+    end
+    path_list
+  end
 end
 
 def knight_moves(from, to)
-  x_move = [2, 2, -2, -2, -1, 1, -1, 1]
-  y_move = [-1, 1, -1, 1, 2, 2, -2, -2]
-  visited = Array.new(8, Array.new(8, false))
-  from_node = Node.new(from[0], from[1], [[from[0], from[1]]])
+  moveset = [[2, -1], [2, 1], [-2, -1], [-2, 1], [-1, 2], [1, 2], [-1, -2],
+    [1, -2]]
+  visited = Array.new(Board::SIZE) { Array.new(Board::SIZE, false) }
+  from_node = Node.new(from[0], from[1])
   to_node = nil
 
   queue = [from_node]
@@ -24,7 +38,6 @@ def knight_moves(from, to)
     node = queue.shift
     x = node.x
     y = node.y
-    path = node.path
     
     if [x, y] == to
       to_node = node
@@ -32,11 +45,11 @@ def knight_moves(from, to)
     end
     unless visited[x][y]
       visited[x][y] = true
-      8.times do |i|
-        x_new = x + x_move[i]
-        y_new = y + y_move[i]
-        if x_new.between?(0, 7) && y_new.between?(0, 7)
-          queue.push(Node.new(x_new, y_new, path + [[x_new, y_new]]))
+      moveset.each do |x_move, y_move|
+        x_new = x + x_move
+        y_new = y + y_move
+        if Board.valid_move?(x_new, y_new)
+          queue.push(Node.new(x_new, y_new, node))
         end
       end
     end
@@ -47,3 +60,4 @@ end
 p knight_moves([0, 0], [1, 2])
 p knight_moves([0, 0], [3, 3])
 p knight_moves([3, 3], [0, 0])
+p knight_moves([0, 0], [7, 7])
