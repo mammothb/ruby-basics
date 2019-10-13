@@ -8,5 +8,3 @@ def caesar_cipher(phrase, shift)
   end
   phrase.split("").map(&shift_if_alpha).join
 end
-
-puts caesar_cipher("What a string!", 5)
