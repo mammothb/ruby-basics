@@ -41,6 +41,10 @@ class Board
     values.length
   end
 
+  def value(i, j)
+    values[i][j].value
+  end
+
   def is_full?
     values.all? { |row| row.all? { |node| node.value != " " } }
   end
@@ -54,30 +58,26 @@ class Board
   end
 
   def has_win_condition?
-    NUM_ROW.times do |i|
-      NUM_COL.times do |j|
-        DIRECTIONS.any? do |row, col|
-          if in_bound?(i + 3 * row, j + 3 * col)
-            pieces = (0..3).map do |n|
-              values[i + n * row][j + n * col].value
-            end.uniq
-            return true if pieces.count == 1 && pieces[0] != " "
+    DIRECTIONS.each do |row, col|
+      ([0, -3 * row].max...[NUM_ROW, NUM_ROW - 3 * row].min).each do |i|
+        ([0, -3 * col].max...[NUM_COL, NUM_COL - 3 * col].min).any? do |j|
+          next unless value(i, j) != " "
+          if (0..3).map { |n| value(i + n * row, j + n * col) }.uniq.count == 1
+            return true
           end
         end
       end
-    end
+    end 
     false
   end
 
   def winning_symbol
-    NUM_ROW.times do |i|
-      NUM_COL.times do |j|
-        DIRECTIONS.any? do |row, col|
-          if in_bound?(i + 3 * row, j + 3 * col)
-            pieces = (0..3).map do |n|
-              values[i + n * row][j + n * col].value
-            end.uniq
-            return pieces[0] if pieces.count == 1 && pieces[0] != " "
+    DIRECTIONS.each do |row, col|
+      ([0, -3 * row].max...[NUM_ROW, NUM_ROW - 3 * row].min).each do |i|
+        ([0, -3 * col].max...[NUM_COL, NUM_COL - 3 * col].min).any? do |j|
+          next unless value(i, j) != " "
+          if (0..3).map { |n| value(i + n * row, j + n * col) }.uniq.count == 1
+            return value(i, j)
           end
         end
       end
