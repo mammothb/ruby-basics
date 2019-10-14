@@ -12,6 +12,15 @@ class Board
     end
   end
 
+  def winning_symbol(conditions)
+    conditions.each do |indices|
+      if values.values_at(*indices).uniq.count == 1 &&
+          values.values_at(*indices).uniq[0] != " "
+        return values.values_at(*indices).uniq[0]
+      end
+    end
+  end
+
   def is_full?
     values.all? { |x| x != " " }
   end
@@ -80,8 +89,11 @@ class TicTacToe
 
   def winner
     if board.has_win_condition?(WIN_CONDITIONS)
-      "#{current_player.name} is the winner!"
-    else
+      winning_player = @players.find do |player|
+        player.symbol == board.winning_symbol(WIN_CONDITIONS)
+      end
+      "#{winning_player.name} is the winner!"
+    elsif board.is_full?
       "It's a draw."
     end
   end
@@ -118,9 +130,11 @@ class TicTacToe
   end
 end
 
-p1 = Player.new("Alice")
-p2 = Player.new("Bob")
+if __FILE__ == $0
+  p1 = Player.new("Alice")
+  p2 = Player.new("Bob")
 
-game = TicTacToe.new(p1, p2)
-game.flip_coin
-game.play
+  game = TicTacToe.new(p1, p2)
+  game.flip_coin
+  game.play
+end
