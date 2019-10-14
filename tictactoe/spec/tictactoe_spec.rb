@@ -129,4 +129,25 @@ RSpec.describe TicTacToe do
       expect(game.prepared?).to eql(true)
     end
   end
+
+  describe "#play" do
+    p1 = Player.new("Alice")
+    p2 = Player.new("Bob")
+    p1.symbol = "X"
+    p2.symbol = "O"
+    game = TicTacToe.new(p1, p2)
+
+    let(:turn_1) { "5\n" }
+    let(:turn_2) { "1\n" }
+    let(:turn_3) { "2\n" }
+    let(:turn_4) { "4\n" }
+    let(:turn_5) { "8\n" }
+
+    it "runs to completion" do
+      allow(game).to receive(:gets).and_return(turn_1, turn_2, turn_3,
+        turn_4, turn_5)
+      expect(game).to receive(:gets).exactly(5).times
+      game.play
+    end
+  end
 end
