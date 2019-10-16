@@ -67,7 +67,7 @@ class Board
           end
         end
       end
-    end 
+    end
     false
   end
 
