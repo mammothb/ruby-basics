@@ -21,9 +21,9 @@ class Chess
   def flip_coin
     @current_player = rand(2).floor
     puts "#{current_player.name} goes first."
-    current_player.color = "white"
+    current_player.color = :white
     switch_player
-    current_player.color = "black"
+    current_player.color = :black
     switch_player
   end
 
@@ -33,7 +33,7 @@ class Chess
     end
 
     switch_player
-    10.times do
+    until game_over? do
       switch_player
       puts board
       print "#{current_player.name}'s turn (#{current_player.icon} ): "
@@ -41,6 +41,7 @@ class Chess
       until board.valid_move?(move, current_player.color)
         move = convert_to_coordinate(current_player.get_move)
       end
+      board.make_move(move)
       p move
     end
   end
@@ -49,11 +50,17 @@ class Chess
     @players.all? { |p| p.color }
   end
 
+  def game_over?
+    false
+  end
+
   private
+    # Convert move string [col, row] to matrix coordinates [row, col],
+    # e.g., a2 c5 => { from: [1, 0], to: [4, 2] }
     def convert_to_coordinate(move_string)
       move_array = move_string.split(" ")
       [:from, :to].zip(move_array).map do |k, pos|
-        [k, [("a".."h").find_index(pos[0]), ("1".."8").find_index(pos[1])]]
+        [k, [("1".."8").find_index(pos[1]), ("a".."h").find_index(pos[0])]]
       end.to_h
     end
 end
@@ -63,9 +70,12 @@ if __FILE__ == $0
   p2 = Player.new("Bob")
 
   game = Chess.new(p1, p2)
+  game.board[1][4] = Board::EMPTY
+  game.board[2][3] = Bishop.new("black", [2, 3])
+
   game.flip_coin
   game.play
-  puts game.board
+  # puts game.board
   
   # PIECES = {
   #   KING: { W: "\u2654", B: "\u265A" },
