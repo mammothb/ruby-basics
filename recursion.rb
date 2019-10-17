@@ -39,7 +39,7 @@ p fibonacci(7)
 
 def flatten_array(arr, result = [])
   arr.each do |elem|
-    elem.kind_of?(Array) ? flatten_array(elem, result) : result.push(elem)
+    elem.is_a?(Array) ? flatten_array(elem, result) : result.push(elem)
   end
   result
 end

@@ -13,7 +13,7 @@
   </p>
 
   <table>
-    <% if legislators.kind_of?(Array) %>
+    <% if legislators.is_a?(Array) %>
       <th>Name</th><th>Website</th>
         <% legislators.each do |legislator| %>
         <tr>

@@ -91,11 +91,11 @@ RSpec.describe Enumerable do
 
     it "works with blocks" do
       expect(nil_array.my_any? { |x| x.nil? }).to eql(true)
-      expect(nil_array.my_any? { |x| x.kind_of?(String) }).to eql(false)
+      expect(nil_array.my_any? { |x| x.is_a?(String) }).to eql(false)
       expect(mixed_array.my_any? { |x| x.nil? }).to eql(true)
       expect(mixed_array.my_any? { |x| x % 2 == 0 }).to eql(true)
       expect(mixed_array.my_any? { |x| x % 2 == 1 }).to eql(true)
-      expect(mixed_array.my_any? { |x| x.kind_of?(String) }).to eql(false)
+      expect(mixed_array.my_any? { |x| x.is_a?(String) }).to eql(false)
     end
   end
 
@@ -110,11 +110,11 @@ RSpec.describe Enumerable do
 
     it "works with blocks" do
       expect(nil_array.my_none? { |x| x.nil? }).to eql(false)
-      expect(nil_array.my_none? { |x| x.kind_of?(String) }).to eql(true)
+      expect(nil_array.my_none? { |x| x.is_a?(String) }).to eql(true)
       expect(mixed_array.my_none? { |x| x.nil? }).to eql(false)
       expect(mixed_array.my_none? { |x| x % 2 == 0 }).to eql(false)
       expect(mixed_array.my_none? { |x| x % 2 == 1 }).to eql(false)
-      expect(mixed_array.my_none? { |x| x.kind_of?(String) }).to eql(true)
+      expect(mixed_array.my_none? { |x| x.is_a?(String) }).to eql(true)
     end
   end
 
@@ -129,11 +129,11 @@ RSpec.describe Enumerable do
 
     it "works with blocks" do
       expect(nil_array.my_count { |x| x.nil? }).to eql(3)
-      expect(nil_array.my_count { |x| x.kind_of?(String) }).to eql(0)
+      expect(nil_array.my_count { |x| x.is_a?(String) }).to eql(0)
       expect(mixed_array.my_count { |x| x.nil? }).to eql(1)
       expect(mixed_array.my_count { |x| x % 2 == 0 rescue false }).to eql(2)
       expect(mixed_array.my_count { |x| x % 2 == 1 rescue false }).to eql(1)
-      expect(mixed_array.my_count { |x| x.kind_of?(String) }).to eql(0)
+      expect(mixed_array.my_count { |x| x.is_a?(String) }).to eql(0)
     end
   end
 
