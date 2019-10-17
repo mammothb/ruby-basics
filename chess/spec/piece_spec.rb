@@ -1,4 +1,4 @@
-require "./lib/chess_piece.rb"
+require "./lib/piece.rb"
 
 RSpec.describe King do
   describe "#impossible_move?" do
@@ -9,14 +9,12 @@ RSpec.describe King do
       end.map { |i, j| [row + i, col + j] }
     end
 
-    piece = King.new(:white)
-
     it "returns false when destination is reachable" do
       8.times do |row|
         8.times do |col|
           moves(row, col).each do |pos|
-            expect(piece.impossible_move?([row, col], pos,
-              false)).to eql(false)
+            piece = King.new(:w, [row, col])
+            expect(piece.impossible_move?(pos, false)).to eql(false)
           end
         end
       end
@@ -26,9 +24,9 @@ RSpec.describe King do
       all_moves = (0..7).to_a.repeated_permutation(2).to_a
       8.times do |row|
         8.times do |col|
+          piece = King.new(:w, [row, col])
           (all_moves - moves(row, col) - [row, col]).each do |pos|
-            expect(piece.impossible_move?([row, col], pos,
-              false)).to eql(true)
+            expect(piece.impossible_move?(pos, false)).to eql(true)
           end
         end
       end
@@ -37,15 +35,14 @@ RSpec.describe King do
 
   describe "#obstructed?" do
     board = Board.new
-    piece = King.new("white")
 
     it "returns false always" do
       8.times do |row|
         8.times do |col|
+          piece = King.new(:w, [row, col])
           8.times do |i|
             8.times do |j|
-              expect(piece.obstructed?(board, [row, col],
-                [i, j])).to eql(false)
+              expect(piece.obstructed?(board, [i, j])).to eql(false)
             end
           end
         end
@@ -68,14 +65,12 @@ RSpec.describe Queen do
       result
     end
 
-    piece = Queen.new("white")
-
     it "returns false when destination is reachable" do
       8.times do |row|
         8.times do |col|
           moves(row, col).each do |pos|
-            expect(piece.impossible_move?([row, col], pos,
-              false)).to eql(false)
+            piece = Queen.new(:w, [row, col])
+            expect(piece.impossible_move?(pos, false)).to eql(false)
           end
         end
       end
@@ -85,9 +80,9 @@ RSpec.describe Queen do
       all_moves = (0..7).to_a.repeated_permutation(2).to_a
       8.times do |row|
         8.times do |col|
+          piece = Queen.new(:w, [row, col])
           (all_moves - moves(row, col) - [row, col]).each do |pos|
-            expect(piece.impossible_move?([row, col], pos,
-              false)).to eql(true)
+            expect(piece.impossible_move?(pos, false)).to eql(true)
           end
         end
       end
@@ -108,8 +103,8 @@ RSpec.describe Queen do
     end
 
     board = Board.new
-    piece = Queen.new("white")
-    pawn = Pawn.new("white")
+    piece = Queen.new(:w, [3, 4])
+    pawn = Pawn.new(:w)
 
     8.times { |i| 8.times { |j| board[i][j] = Board::EMPTY } }
     board[1][2] = pawn
@@ -127,7 +122,7 @@ RSpec.describe Queen do
       moves(*pos).each do |i, j|
         if i == 0 || (i == 3 && (j < 2 || j > 6)) || (i == 6 && j > 6) ||
             (i == 7 && j < 5)
-          expect(piece.obstructed?(board, pos, [i, j])).to eql(true)
+          expect(piece.obstructed?(board, [i, j])).to eql(true)
         end
       end
     end
@@ -136,7 +131,7 @@ RSpec.describe Queen do
       moves(*pos).each do |i, j|
         unless i == 0 || (i == 3 && (j < 2 || j > 6)) || (i == 6 && j > 6) ||
             (i == 7 && j < 5)
-          expect(piece.obstructed?(board, pos, [i, j])).to eql(false)
+          expect(piece.obstructed?(board, [i, j])).to eql(false)
         end
       end
     end
@@ -156,14 +151,12 @@ RSpec.describe Rook do
       result
     end
 
-    piece = Rook.new("white")
-
     it "returns false when destination is reachable" do
       8.times do |row|
         8.times do |col|
+          piece = Rook.new(:w, [row, col])
           moves(row, col).each do |pos|
-            expect(piece.impossible_move?([row, col], pos,
-              false)).to eql(false)
+            expect(piece.impossible_move?(pos, false)).to eql(false)
           end
         end
       end
@@ -173,9 +166,9 @@ RSpec.describe Rook do
       all_moves = (0..7).to_a.repeated_permutation(2).to_a
       8.times do |row|
         8.times do |col|
+          piece = Rook.new(:w, [row, col])
           (all_moves - moves(row, col) - [row, col]).each do |pos|
-            expect(piece.impossible_move?([row, col], pos,
-              false)).to eql(true)
+            expect(piece.impossible_move?(pos, false)).to eql(true)
           end
         end
       end
@@ -195,8 +188,8 @@ RSpec.describe Rook do
     end
 
     board = Board.new
-    piece = Rook.new("white")
-    pawn = Pawn.new("white")
+    piece = Rook.new(:w, [3, 4])
+    pawn = Pawn.new(:w)
 
     8.times { |i| 8.times { |j| board[i][j] = Board::EMPTY } }
     board[1][4] = pawn
@@ -209,7 +202,7 @@ RSpec.describe Rook do
     it "returns true when there's another piece in the way" do
       moves(*pos).each do |i, j|
         if i == 0 || (i == 3 && (j < 2 || j > 6)) || i == 7
-          expect(piece.obstructed?(board, pos, [i, j])).to eql(true)
+          expect(piece.obstructed?(board, [i, j])).to eql(true)
         end
       end
     end
@@ -217,7 +210,7 @@ RSpec.describe Rook do
     it "returns false when there's nothing in the way" do
       moves(*pos).each do |i, j|
         unless i == 0 || (i == 3 && (j < 2 || j > 6)) || i == 7
-          expect(piece.obstructed?(board, pos, [i, j])).to eql(false)
+          expect(piece.obstructed?(board, [i, j])).to eql(false)
         end
       end
     end
@@ -237,14 +230,12 @@ RSpec.describe Bishop do
       result
     end
 
-    piece = Bishop.new("white")
-
     it "returns false when destination is reachable" do
       8.times do |row|
         8.times do |col|
+          piece = Bishop.new(:w, [row, col])
           moves(row, col).each do |pos|
-            expect(piece.impossible_move?([row, col], pos,
-              false)).to eql(false)
+            expect(piece.impossible_move?(pos, false)).to eql(false)
           end
         end
       end
@@ -254,9 +245,9 @@ RSpec.describe Bishop do
       all_moves = (0..7).to_a.repeated_permutation(2).to_a
       8.times do |row|
         8.times do |col|
+          piece = Bishop.new(:w, [row, col])
           (all_moves - moves(row, col) - [row, col]).each do |pos|
-            expect(piece.impossible_move?([row, col], pos,
-              false)).to eql(true)
+            expect(piece.impossible_move?(pos, false)).to eql(true)
           end
         end
       end
@@ -276,21 +267,20 @@ RSpec.describe Bishop do
     end
 
     board = Board.new
-    piece = Bishop.new("white")
-    pawn = Pawn.new("white")
+    piece = Bishop.new(:w, [3, 4])
 
     8.times { |i| 8.times { |j| board[i][j] = Board::EMPTY } }
-    board[1][2] = pawn
-    board[1][6] = pawn
+    board[1][2] = Pawn.new(:w, [1, 2])
+    board[1][6] = Pawn.new(:w, [1, 6])
     board[3][4] = piece
-    board[6][1] = pawn
-    board[5][6] = pawn
+    board[6][1] = Pawn.new(:w, [6, 1])
+    board[5][6] = Pawn.new(:w, [5, 6])
     pos = [3, 4]
 
     it "returns true when there's another piece in the way" do
       moves(*pos).each do |i, j|
         if i == 0 || (i == 6 && j > 6) || i == 7
-          expect(piece.obstructed?(board, pos, [i, j])).to eql(true)
+          expect(piece.obstructed?(board, [i, j])).to eql(true)
         end
       end
     end
@@ -298,7 +288,7 @@ RSpec.describe Bishop do
     it "returns false when there's nothing in the way" do
       moves(*pos).each do |i, j|
         unless i == 0 || (i == 6 && j > 6) || i == 7
-          expect(piece.obstructed?(board, pos, [i, j])).to eql(false)
+          expect(piece.obstructed?(board, [i, j])).to eql(false)
         end
       end
     end
@@ -314,14 +304,12 @@ RSpec.describe Knight do
       end.map { |i, j| [row + i, col + j] }
     end
 
-    piece = Knight.new("white")
-
     it "returns false when destination is reachable" do
       8.times do |row|
         8.times do |col|
+          piece = Knight.new(:w, [row, col])
           moves(row, col).each do |i, j|
-            expect(piece.impossible_move?([row, col], [i, j],
-              false)).to eql(false)
+            expect(piece.impossible_move?([i, j], false)).to eql(false)
           end
         end
       end
@@ -331,9 +319,9 @@ RSpec.describe Knight do
       all_moves = (0..7).to_a.repeated_permutation(2).to_a
       8.times do |row|
         8.times do |col|
+          piece = Knight.new(:w, [row, col])
           (all_moves - moves(row, col) - [row, col]).each do |pos|
-            expect(piece.impossible_move?([row, col], pos,
-              false)).to eql(true)
+            expect(piece.impossible_move?(pos, false)).to eql(true)
           end
         end
       end
@@ -342,15 +330,14 @@ RSpec.describe Knight do
 
   describe "#obstructed?" do
     board = Board.new
-    piece = Knight.new("white")
 
     it "returns false always" do
       8.times do |row|
         8.times do |col|
+          piece = Knight.new(:w, [row, col])
           8.times do |i|
             8.times do |j|
-              expect(piece.obstructed?(board, [row, col],
-                [i, j])).to eql(false)
+              expect(piece.obstructed?(board, [i, j])).to eql(false)
             end
           end
         end
@@ -370,28 +357,23 @@ RSpec.describe Pawn do
         (row + i).between?(0, 7) && (col + j).between?(0, 7)
       end.map { |i, j| [row + i, col + j] }
     end
-
-    white_piece = Pawn.new("white")
-    black_piece = Pawn.new("black")
     
     it "returns false when destination is reachable" do
       8.times do |row|
         8.times do |col|
+          white_piece = Pawn.new(:w, [row, col])
+          black_piece = Pawn.new(:b, [row, col])
           moves(row, col, row == 1, false, true).each do |pos|
-            expect(white_piece.impossible_move?([row, col], pos,
-              false)).to eql(false)
+            expect(white_piece.impossible_move?(pos, false)).to eql(false)
           end
           moves(row, col, row == 6, false, false).each do |pos|
-            expect(black_piece.impossible_move?([row, col], pos,
-              false)).to eql(false)
+            expect(black_piece.impossible_move?(pos, false)).to eql(false)
           end
           moves(row, col, row == 1, true, true).each do |pos|
-            expect(white_piece.impossible_move?([row, col], pos,
-              true)).to eql(false)
+            expect(white_piece.impossible_move?(pos, true)).to eql(false)
           end
           moves(row, col, row == 1, true, false).each do |pos|
-            expect(black_piece.impossible_move?([row, col], pos,
-              true)).to eql(false)
+            expect(black_piece.impossible_move?(pos, true)).to eql(false)
           end
         end
       end
@@ -401,25 +383,23 @@ RSpec.describe Pawn do
       all_moves = (0..7).to_a.repeated_permutation(2).to_a
       8.times do |row|
         8.times do |col|
+          white_piece = Pawn.new(:w, [row, col])
+          black_piece = Pawn.new(:b, [row, col])
           (all_moves - moves(row, col, row == 1, false, true) -
               [row, col]).each do |pos|
-            expect(white_piece.impossible_move?([row, col], pos,
-              false)).to eql(true)
+            expect(white_piece.impossible_move?(pos, false)).to eql(true)
           end
           (all_moves - moves(row, col, row == 6, false, false) -
               [row, col]).each do |pos|
-            expect(black_piece.impossible_move?([row, col], pos,
-              false)).to eql(true)
+            expect(black_piece.impossible_move?(pos, false)).to eql(true)
           end
           (all_moves - moves(row, col, row == 1, true, true) -
               [row, col]).each do |pos|
-            expect(white_piece.impossible_move?([row, col], pos,
-              true)).to eql(true)
+            expect(white_piece.impossible_move?(pos, true)).to eql(true)
           end
           (all_moves - moves(row, col, row == 6, true, false) -
               [row, col]).each do |pos|
-            expect(black_piece.impossible_move?([row, col], pos,
-              true)).to eql(true)
+            expect(black_piece.impossible_move?(pos, true)).to eql(true)
           end
         end
       end
@@ -440,40 +420,43 @@ RSpec.describe Pawn do
     end
 
     board = Board.new
-    white_pawn = Pawn.new("white")
-    black_pawn = Pawn.new("black")
+    pawn = Pawn.new(:w)
 
     8.times { |i| 8.times { |j| board[i][j] = Board::EMPTY } }
     8.times do |j|
       if j % 2 == 0
-        board[2][j] = white_pawn
+        board[2][j] = pawn
       else
-        board[5][j] = black_pawn
+        board[5][j] = pawn
       end
     end
 
     it "returns true when there's another piece in the way" do
       8.times do |j|
+        white_pawn = Pawn.new(:w, [1, j])
+        black_pawn = Pawn.new(:b, [6, j])
         if j % 2 == 0
-          expect(white_pawn.obstructed?(board, [1, j], [3, j])).to eql(true)
+          expect(white_pawn.obstructed?(board, [3, j])).to eql(true)
         else
-          expect(black_pawn.obstructed?(board, [6, j], [4, j])).to eql(true)
+          expect(black_pawn.obstructed?(board, [4, j])).to eql(true)
         end
       end
     end
 
     it "returns false when there's nothing in the way" do
       8.times do |j|
+        white_pawn = Pawn.new(:w, [1, j])
+        black_pawn = Pawn.new(:b, [6, j])
         if j % 2 == 0
-          expect(black_pawn.obstructed?(board, [6, j], [4, j])).to eql(false)
+          expect(black_pawn.obstructed?(board, [4, j])).to eql(false)
         else
-          expect(white_pawn.obstructed?(board, [1, j], [3, j])).to eql(false)
+          expect(white_pawn.obstructed?(board, [3, j])).to eql(false)
         end
         7.times do |i|
-          expect(white_pawn.obstructed?(board, [i, j],
-            [i + 1, j])).to eql(false)
-            expect(black_pawn.obstructed?(board, [7 - i, j],
-              [7 - i - 1, j])).to eql(false)
+          white_pawn = Pawn.new(:w, [i, j])
+          black_pawn = Pawn.new(:b, [7 - i, j])
+          expect(white_pawn.obstructed?(board, [i + 1, j])).to eql(false)
+          expect(black_pawn.obstructed?(board, [7 - i - 1, j])).to eql(false)
         end
       end
     end

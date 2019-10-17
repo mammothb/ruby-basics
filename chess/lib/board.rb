@@ -1,10 +1,10 @@
-require_relative "chess_piece.rb"
+require_relative "piece.rb"
 require_relative "board_helper.rb"
 
 class Board
   SIZE = 8.freeze
   EMPTY = " ".freeze
-  KING = { white: "\u2654", black: "\u265A" }.freeze
+  KING = { w: "\u2654", b: "\u265A" }.freeze
 
   def self.in_bounds?(i, j)
     i.between?(0, SIZE - 1) && j.between?(0, SIZE - 1)
@@ -13,19 +13,19 @@ class Board
   def initialize
     @values = Array.new(SIZE) { Array.new(SIZE, EMPTY) }
     SIZE.times do |i|
-      @values[1][i] = Pawn.new(:white, [1, i])
-      @values[6][i] = Pawn.new(:black, [6, i])
+      @values[1][i] = Pawn.new(:w, [1, i])
+      @values[6][i] = Pawn.new(:b, [6, i])
     end
     [Rook, Knight, Bishop].each_with_index do |piece, i|
-      @values[0][i] = piece.new(:white, [0, i])
-      @values[0][SIZE - i - 1] = piece.new(:white, [0, SIZE - i - 1])
-      @values[7][i] = piece.new(:black, [7, i])
-      @values[7][SIZE - i - 1] = piece.new(:black, [7, SIZE - i - 1])
+      @values[0][i] = piece.new(:w, [0, i])
+      @values[0][SIZE - i - 1] = piece.new(:w, [0, SIZE - i - 1])
+      @values[7][i] = piece.new(:b, [7, i])
+      @values[7][SIZE - i - 1] = piece.new(:b, [7, SIZE - i - 1])
     end
-    @values[0][3] = Queen.new(:white, [0, 3])
-    @values[0][4] = King.new(:white, [0, 4])
-    @values[7][3] = Queen.new(:black, [7, 3])
-    @values[7][4] = King.new(:black, [7, 4])
+    @values[0][3] = Queen.new(:w, [0, 3])
+    @values[0][4] = King.new(:w, [0, 4])
+    @values[7][3] = Queen.new(:b, [7, 3])
+    @values[7][4] = King.new(:b, [7, 4])
   end
 
   def [](index)
@@ -77,12 +77,12 @@ class Board
   end
 
   def same_color?(from, to)
-    self[to].is_a?(ChessPiece) && self[from].color == self[to].color
+    self[to].is_a?(Piece) && self[from].color == self[to].color
   end
 
   def reachable?(from, to)
     result = false
-    if self[from].impossible_move?(from, to, self[to].is_a?(ChessPiece))
+    if self[from].impossible_move?(from, to, self[to].is_a?(Piece))
       print "The selected game piece (#{self[from].symbol} ) cannot move " +
         "that way: "
     elsif self[from].obstructed?(self, from, to)
@@ -105,12 +105,12 @@ class Board
   end
 
   def king_pos(color)
-    @values.flatten.select { |node| node.is_a?(ChessPiece) }
+    @values.flatten.select { |node| node.is_a?(Piece) }
       .find { |piece| piece.symbol == KING[color.to_sym] }.pos
   end
 
   def opponent_pieces(color)
-    @values.flatten.select { |node| node.is_a?(ChessPiece) }
+    @values.flatten.select { |node| node.is_a?(Piece) }
       .select { |piece| piece.color != color }
   end
 
@@ -126,7 +126,7 @@ class Board
     @values.reverse.each_with_index do |row, i|
       result += "#{SIZE - i} | "
       result += row.map do |piece|
-        piece.is_a?(ChessPiece) ? piece.symbol : piece
+        piece.is_a?(Piece) ? piece.symbol : piece
       end.join(" | ")
       result += " | #{SIZE - i}\n"
       result += "  +-#{(["-"] * 8).join("-+-")}-+\n"

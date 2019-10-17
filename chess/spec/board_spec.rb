@@ -1,5 +1,5 @@
 require "./lib/board.rb"
-require "./lib/chess_piece.rb"
+require "./lib/piece.rb"
 
 RSpec.describe "#include_nil?" do
   it "returns true when given a hash containing nil in its values" do
@@ -46,80 +46,80 @@ RSpec.describe Board do
 
   describe "#[]" do
     pieces = {
-      white: {
-        king: King.new(:white),
-        queen: Queen.new(:white),
-        rook: Rook.new(:white),
-        bishop: Bishop.new(:white),
-        knight: Knight.new(:white),
-        pawn: Pawn.new(:white)
+      w: {
+        king: King.new(:w),
+        queen: Queen.new(:w),
+        rook: Rook.new(:w),
+        bishop: Bishop.new(:w),
+        knight: Knight.new(:w),
+        pawn: Pawn.new(:w)
       },
-      black: {
-        king: King.new(:black),
-        queen: Queen.new(:black),
-        rook: Rook.new(:black),
-        bishop: Bishop.new(:black),
-        knight: Knight.new(:black),
-        pawn: Pawn.new(:black)
+      b: {
+        king: King.new(:b),
+        queen: Queen.new(:b),
+        rook: Rook.new(:b),
+        bishop: Bishop.new(:b),
+        knight: Knight.new(:b),
+        pawn: Pawn.new(:b)
       }
     }
 
     board = Board.new
 
     it "returns the proper node when given [row, col]" do
-      expect(board[[0, 0]].symbol).to eql(pieces[:white][:rook].symbol)
-      expect(board[[0, 7]].symbol).to eql(pieces[:white][:rook].symbol)
-      expect(board[[0, 1]].symbol).to eql(pieces[:white][:knight].symbol)
-      expect(board[[0, 6]].symbol).to eql(pieces[:white][:knight].symbol)
-      expect(board[[0, 2]].symbol).to eql(pieces[:white][:bishop].symbol)
-      expect(board[[0, 5]].symbol).to eql(pieces[:white][:bishop].symbol)
-      expect(board[[0, 3]].symbol).to eql(pieces[:white][:queen].symbol)
-      expect(board[[0, 4]].symbol).to eql(pieces[:white][:king].symbol)
+      expect(board[[0, 0]].symbol).to eql(pieces[:w][:rook].symbol)
+      expect(board[[0, 7]].symbol).to eql(pieces[:w][:rook].symbol)
+      expect(board[[0, 1]].symbol).to eql(pieces[:w][:knight].symbol)
+      expect(board[[0, 6]].symbol).to eql(pieces[:w][:knight].symbol)
+      expect(board[[0, 2]].symbol).to eql(pieces[:w][:bishop].symbol)
+      expect(board[[0, 5]].symbol).to eql(pieces[:w][:bishop].symbol)
+      expect(board[[0, 3]].symbol).to eql(pieces[:w][:queen].symbol)
+      expect(board[[0, 4]].symbol).to eql(pieces[:w][:king].symbol)
 
-      expect(board[[7, 0]].symbol).to eql(pieces[:black][:rook].symbol)
-      expect(board[[7, 7]].symbol).to eql(pieces[:black][:rook].symbol)
-      expect(board[[7, 1]].symbol).to eql(pieces[:black][:knight].symbol)
-      expect(board[[7, 6]].symbol).to eql(pieces[:black][:knight].symbol)
-      expect(board[[7, 2]].symbol).to eql(pieces[:black][:bishop].symbol)
-      expect(board[[7, 5]].symbol).to eql(pieces[:black][:bishop].symbol)
-      expect(board[[7, 3]].symbol).to eql(pieces[:black][:queen].symbol)
-      expect(board[[7, 4]].symbol).to eql(pieces[:black][:king].symbol)
+      expect(board[[7, 0]].symbol).to eql(pieces[:b][:rook].symbol)
+      expect(board[[7, 7]].symbol).to eql(pieces[:b][:rook].symbol)
+      expect(board[[7, 1]].symbol).to eql(pieces[:b][:knight].symbol)
+      expect(board[[7, 6]].symbol).to eql(pieces[:b][:knight].symbol)
+      expect(board[[7, 2]].symbol).to eql(pieces[:b][:bishop].symbol)
+      expect(board[[7, 5]].symbol).to eql(pieces[:b][:bishop].symbol)
+      expect(board[[7, 3]].symbol).to eql(pieces[:b][:queen].symbol)
+      expect(board[[7, 4]].symbol).to eql(pieces[:b][:king].symbol)
 
       8.times do |i|
-        expect(board[[1, i]].symbol).to eql(pieces[:white][:pawn].symbol)
-        expect(board[[6, i]].symbol).to eql(pieces[:black][:pawn].symbol)
+        expect(board[[1, i]].symbol).to eql(pieces[:w][:pawn].symbol)
+        expect(board[[6, i]].symbol).to eql(pieces[:b][:pawn].symbol)
       end
     end
 
     it "returns the proper node when given [row]" do
-      expect(board[0][0].symbol).to eql(pieces[:white][:rook].symbol)
-      expect(board[0][7].symbol).to eql(pieces[:white][:rook].symbol)
-      expect(board[0][1].symbol).to eql(pieces[:white][:knight].symbol)
-      expect(board[0][6].symbol).to eql(pieces[:white][:knight].symbol)
-      expect(board[0][2].symbol).to eql(pieces[:white][:bishop].symbol)
-      expect(board[0][5].symbol).to eql(pieces[:white][:bishop].symbol)
-      expect(board[0][3].symbol).to eql(pieces[:white][:queen].symbol)
-      expect(board[0][4].symbol).to eql(pieces[:white][:king].symbol)
+      expect(board[0][0].symbol).to eql(pieces[:w][:rook].symbol)
+      expect(board[0][7].symbol).to eql(pieces[:w][:rook].symbol)
+      expect(board[0][1].symbol).to eql(pieces[:w][:knight].symbol)
+      expect(board[0][6].symbol).to eql(pieces[:w][:knight].symbol)
+      expect(board[0][2].symbol).to eql(pieces[:w][:bishop].symbol)
+      expect(board[0][5].symbol).to eql(pieces[:w][:bishop].symbol)
+      expect(board[0][3].symbol).to eql(pieces[:w][:queen].symbol)
+      expect(board[0][4].symbol).to eql(pieces[:w][:king].symbol)
 
-      expect(board[7][0].symbol).to eql(pieces[:black][:rook].symbol)
-      expect(board[7][7].symbol).to eql(pieces[:black][:rook].symbol)
-      expect(board[7][1].symbol).to eql(pieces[:black][:knight].symbol)
-      expect(board[7][6].symbol).to eql(pieces[:black][:knight].symbol)
-      expect(board[7][2].symbol).to eql(pieces[:black][:bishop].symbol)
-      expect(board[7][5].symbol).to eql(pieces[:black][:bishop].symbol)
-      expect(board[7][3].symbol).to eql(pieces[:black][:queen].symbol)
-      expect(board[7][4].symbol).to eql(pieces[:black][:king].symbol)
+      expect(board[7][0].symbol).to eql(pieces[:b][:rook].symbol)
+      expect(board[7][7].symbol).to eql(pieces[:b][:rook].symbol)
+      expect(board[7][1].symbol).to eql(pieces[:b][:knight].symbol)
+      expect(board[7][6].symbol).to eql(pieces[:b][:knight].symbol)
+      expect(board[7][2].symbol).to eql(pieces[:b][:bishop].symbol)
+      expect(board[7][5].symbol).to eql(pieces[:b][:bishop].symbol)
+      expect(board[7][3].symbol).to eql(pieces[:b][:queen].symbol)
+      expect(board[7][4].symbol).to eql(pieces[:b][:king].symbol)
 
       8.times do |i|
-        expect(board[1][i].symbol).to eql(pieces[:white][:pawn].symbol)
-        expect(board[6][i].symbol).to eql(pieces[:black][:pawn].symbol)
+        expect(board[1][i].symbol).to eql(pieces[:w][:pawn].symbol)
+        expect(board[6][i].symbol).to eql(pieces[:b][:pawn].symbol)
       end
     end
   end
 
   describe "#empty_selection?" do
     board = Board.new
-    pawn = Pawn.new(:white)
+    pawn = Pawn.new(:w)
     # Set the board to have pieces that's not in the default position
     8.times do |row|
       8.times do |col|
@@ -127,7 +127,7 @@ RSpec.describe Board do
       end
     end
 
-    it "returns true when the position doesn't contain a ChessPiece" do
+    it "returns true when the position doesn't contain a Piece" do
       8.times do |row|
         8.times do |col|
           unless (row * col) % 6 == 0
@@ -137,7 +137,7 @@ RSpec.describe Board do
       end
     end
 
-    it "returns false when the position contains a ChessPiece" do
+    it "returns false when the position contains a Piece" do
       8.times do |row|
         8.times do |col|
           if (row * col) % 6 == 0
@@ -150,8 +150,8 @@ RSpec.describe Board do
 
   describe "#belong_to_player?" do
     board = Board.new
-    white_pawn = Pawn.new(:white)
-    black_pawn = Pawn.new(:black)
+    white_pawn = Pawn.new(:w)
+    black_pawn = Pawn.new(:b)
     # Set the board to have pieces that's not in the default position
     8.times do |row|
       8.times do |col|
@@ -163,9 +163,9 @@ RSpec.describe Board do
       8.times do |row|
         8.times do |col|
           if (row * col) % 6 == 0
-            expect(board.belong_to_player?([row, col], :white)).to eql(true)
+            expect(board.belong_to_player?([row, col], :w)).to eql(true)
           else
-            expect(board.belong_to_player?([row, col], :black)).to eql(true)
+            expect(board.belong_to_player?([row, col], :b)).to eql(true)
           end
         end
       end
@@ -177,10 +177,10 @@ RSpec.describe Board do
         8.times do |col|
           if (row * col) % 6 == 0
             expect(board.belong_to_player?([row, col],
-              :black)).to eql(false)
+              :b)).to eql(false)
           else
             expect(board.belong_to_player?([row, col],
-              :white)).to eql(false)
+              :w)).to eql(false)
           end
         end
       end
@@ -189,8 +189,8 @@ RSpec.describe Board do
 
   describe "#same_color?" do
     board = Board.new
-    white_pawn = Pawn.new(:white)
-    black_pawn = Pawn.new(:black)
+    white_pawn = Pawn.new(:w)
+    black_pawn = Pawn.new(:b)
     # Set the board to have pieces that's not in the default position
     8.times do |row|
       8.times do |col|

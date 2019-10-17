@@ -21,9 +21,9 @@ class Chess
   def flip_coin
     @current_player = rand(2).floor
     puts "#{current_player.name} goes first."
-    current_player.color = :white
+    current_player.color = :w
     switch_player
-    current_player.color = :black
+    current_player.color = :b
     switch_player
   end
 

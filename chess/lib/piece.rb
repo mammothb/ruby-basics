@@ -1,8 +1,8 @@
 require_relative "board.rb"
-require_relative "chess_piece_helper.rb"
+require_relative "piece_helper.rb"
 require_relative "movement.rb"
 
-class ChessPiece
+class Piece
   attr_reader :color, :symbol
   attr_accessor :pos
 
@@ -12,13 +12,13 @@ class ChessPiece
     @pos = pos
   end
 
-  def impossible_move?(from, to, capture)
+  def impossible_move?(to, capture)
     if distance == 1
-      !directions.include?(distance_vector(from, to))
-    elsif from != to
+      !directions.include?(distance_vector(pos, to))
+    elsif pos != to
       # Convert to absolute for easier calculations and since
-      # directions for Unlimited movements are mirrored
-      direction = distance_vector(from, to).map(&:abs)
+      # directions for MultiStep movements are mirrored
+      direction = distance_vector(pos, to).map(&:abs)
       min_mag = direction.select{ |x| x != 0 }.min
       !directions.include?(direction.map { |x| (x.to_f / min_mag).ceil })
     else
@@ -26,61 +26,61 @@ class ChessPiece
     end
   end
 
-  def obstructed?(board, from, to)
+  def obstructed?(board, to)
     if distance > 1
-      direction = distance_vector(from, to)
+      direction = distance_vector(pos, to)
       steps = direction.map(&:abs).max
       direction.map! { |x| x / steps }
       (1...steps).map do |n|
-        from.zip(direction).map { |x, d| x + d * n }
-      end.any? { |pos| board[pos].is_a?(ChessPiece) }
+        pos.zip(direction).map { |x, d| x + d * n }
+      end.any? { |coord| board[coord].is_a?(Piece) }
     else
       false
     end
   end
 end
 
-class King < ChessPiece
+class King < Piece
   include Movement::SingleStep
   include Movement::OmniDirectional
 
   def initialize(color, pos = nil)
-    super({ white: "\u2654", black: "\u265A" }, color, pos)
+    super({ w: "\u2654", b: "\u265A" }, color, pos)
   end
 end
 
-class Queen < ChessPiece
-  include Movement::Unlimited
+class Queen < Piece
+  include Movement::MultiStep
   include Movement::OmniDirectional
 
   def initialize(color, pos = nil)
-    super({ white: "\u2655", black: "\u265B" }, color, pos)
+    super({ w: "\u2655", b: "\u265B" }, color, pos)
   end
 end
 
-class Rook < ChessPiece
-  include Movement::Unlimited
+class Rook < Piece
+  include Movement::MultiStep
   include Movement::Straight
 
   def initialize(color, pos = nil)
-    super({ white: "\u2656", black: "\u265C" }, color, pos)
+    super({ w: "\u2656", b: "\u265C" }, color, pos)
   end
 end
 
-class Bishop < ChessPiece
-  include Movement::Unlimited
+class Bishop < Piece
+  include Movement::MultiStep
   include Movement::Diagonal
 
   def initialize(color, pos = nil)
-    super({ white: "\u2657", black: "\u265D" }, color, pos)
+    super({ w: "\u2657", b: "\u265D" }, color, pos)
   end
 end
 
-class Knight < ChessPiece
+class Knight < Piece
   include Movement::SingleStep
 
   def initialize(color, pos = nil)
-    super({ white: "\u2658", black: "\u265E" }, color, pos)
+    super({ w: "\u2658", b: "\u265E" }, color, pos)
   end
 
   def directions
@@ -88,12 +88,12 @@ class Knight < ChessPiece
   end
 end
 
-class Pawn < ChessPiece
+class Pawn < Piece
   include Movement::SingleStep
 
   def initialize(color, pos = nil)
-    super({ white: "\u2659", black: "\u265F" }, color, pos)
-    @baseline = @color == "white" ? 1 : 6
+    super({ w: "\u2659", b: "\u265F" }, color, pos)
+    @baseline = @color == :w ? 1 : 6
     @is_on_baseline = true
     @is_capturing = false
   end
@@ -102,21 +102,21 @@ class Pawn < ChessPiece
     arr = [[1, 0]]
     arr += [[2, 0]] if @is_on_baseline
     arr += [[1, 1], [1, -1]] if @is_capturing
-    @color == "white" ? arr : arr.map { |x| x.map { |i| -i } }
+    @color == :w ? arr : arr.map { |x| x.map { |i| -i } }
   end
 
-  def impossible_move?(from, to, capture)
-    @is_on_baseline = from[0] == @baseline
+  def impossible_move?(to, capture)
+    @is_on_baseline = pos[0] == @baseline
     @is_capturing = capture
     super
   end
 
-  def obstructed?(board, from, to)
+  def obstructed?(board, to)
     if @is_on_baseline
-      nrow = distance_vector(from, to)[0]
+      nrow = distance_vector(pos, to)[0]
       steps = nrow.abs
       if steps == 2
-        return board[from[0] + nrow / steps][from[1]].is_a?(ChessPiece)
+        return board[pos[0] + nrow / steps][pos[1]].is_a?(Piece)
       end
     end
     false
