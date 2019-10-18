@@ -1,29 +1,31 @@
 require "./lib/board.rb"
-require "./lib/piece.rb"
-
-RSpec.describe "#include_nil?" do
-  it "returns true when given a hash containing nil in its values" do
-    moves = [{ from: [1, 2], to: [3, nil] },
-             { from: [1, 2], to: [nil, 4] },
-             { from: [1, nil], to: [3, 4] },
-             { from: [nil, 2], to: [3, 4] },
-             { from: [1, 2], to: [nil, nil] },
-             { from: [nil, nil], to: [nil, 4] }]
-    moves.each do |move|
-      expect(include_nil?(move)).to eql(true)
-    end
-  end
-
-  it "returns false when given a hash doesn't contain nil values" do
-    moves = [{ from: [1, 2], to: [3, 4] },
-             { from: [11, 12], to: [13, 14] }]
-    moves.each do |move|
-      expect(include_nil?(move)).to eql(false)
-    end
-  end
-end
+require "./lib/pieces/pieces.rb"
 
 RSpec.describe Board do
+  describe "#include_nil?" do
+    board = Board.new
+
+    it "returns true when given a hash containing nil in its values" do
+      moves = [{ from: [1, 2], to: [3, nil] },
+               { from: [1, 2], to: [nil, 4] },
+               { from: [1, nil], to: [3, 4] },
+               { from: [nil, 2], to: [3, 4] },
+               { from: [1, 2], to: [nil, nil] },
+               { from: [nil, nil], to: [nil, 4] }]
+      moves.each do |move|
+        expect(board.include_nil?(move)).to eql(true)
+      end
+    end
+  
+    it "returns false when given a hash doesn't contain nil values" do
+      moves = [{ from: [1, 2], to: [3, 4] },
+               { from: [11, 12], to: [13, 14] }]
+      moves.each do |move|
+        expect(board.include_nil?(move)).to eql(false)
+      end
+    end
+  end
+
   describe "::in_bounds?" do
     it "returns true if [i, j] is within the board's limits" do
       8.times do |row|

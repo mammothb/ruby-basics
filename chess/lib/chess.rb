@@ -32,18 +32,21 @@ class Chess
       puts "Flip a coin to decide who starts first"
     end
 
-    switch_player
     until game_over? do
-      switch_player
       puts board
+      puts "Your king is in check" if board.checked?(current_player.color)
       print "#{current_player.name}'s turn (#{current_player.icon} ): "
       move = convert_to_coordinate(current_player.get_move)
       until board.valid_move?(move, current_player.color)
         move = convert_to_coordinate(current_player.get_move)
       end
       board.make_move(move)
-      p move
+      switch_player
     end
+
+    switch_player
+    puts board
+    puts "#{current_player.name} is the winner!"
   end
 
   def prepared?
@@ -51,7 +54,8 @@ class Chess
   end
 
   def game_over?
-    false
+    board.checked?(current_player.color) &&
+      !board.escape_checked?(current_player.color)
   end
 
   private
@@ -71,42 +75,19 @@ if __FILE__ == $0
 
   game = Chess.new(p1, p2)
   game.board[1][4] = Board::EMPTY
-  game.board[2][3] = Bishop.new("black", [2, 3])
+  bishop_1 = Bishop.new(:b, [3, 1])
+  bishop_2 = Bishop.new(:b, [3, 6])
+  game.board[bishop_1.pos] = bishop_1
+  game.board[bishop_2.pos] = bishop_2
+  game.board[2][2] = Pawn.new(:w, [2, 2])
 
   game.flip_coin
   game.play
   # puts game.board
-  
-  # PIECES = {
-  #   KING: { W: "\u2654", B: "\u265A" },
-  #   QUEEN: { W: "\u2655", B: "\u265B" },
-  #   ROOK: { W: "\u2656", B: "\u265C" },
-  #   BISHOP: { W: "\u2657", B: "\u265D" },
-  #   KNIGHT: { W: "\u2658", B: "\u265E" },
-  #   PAWN: { W: "\u2659", B: "\u265F" }
-  # }
 
-  # PIECES_BY_COLOR = {
-  #   W: {
-  #     KING: "\u2654",
-  #     QUEEN: "\u2655",
-  #     ROOK: "\u2656",
-  #     BISHOP: "\u2657",
-  #     KNIGHT: "\u2658",
-  #     PAWN: "\u2659"
-  #   },
-  #   B: {
-  #     KING: "\u265A",
-  #     QUEEN: "\u265B",
-  #     ROOK: "\u265C",
-  #     BISHOP: "\u265D",
-  #     KNIGHT: "\u265E",
-  #     PAWN: "\u265F"
-  #   }
-  # }
+  # queen = Queen.new(:w, [4, 5])
+  # p queen.all_possible_moves
 
-  # def piece_color(game_piece)
-  #   color = PIECES_BY_COLOR.find { |k, h| h.key(game_piece) }
-  #   color[0] unless color.nil?
-  # end
+  # king = King.new(:w, [4, 5])
+  # p king.all_possible_moves
 end

@@ -1,49 +1,44 @@
-require_relative "piece.rb"
+require_relative "pieces/pieces.rb"
 require_relative "board_helper.rb"
+require_relative "board_values.rb"
 
 class Board
   SIZE = 8.freeze
   EMPTY = " ".freeze
   KING = { w: "\u2654", b: "\u265A" }.freeze
 
+  include BoardHelper
+
   def self.in_bounds?(i, j)
     i.between?(0, SIZE - 1) && j.between?(0, SIZE - 1)
   end
 
   def initialize
-    @values = Array.new(SIZE) { Array.new(SIZE, EMPTY) }
+    @values = BoardValues.new(SIZE, EMPTY)
+    all_pieces = []
     SIZE.times do |i|
-      @values[1][i] = Pawn.new(:w, [1, i])
-      @values[6][i] = Pawn.new(:b, [6, i])
+      all_pieces.push(Pawn.new(:w, [1, i]))
+      all_pieces.push(Pawn.new(:b, [6, i]))
     end
     [Rook, Knight, Bishop].each_with_index do |piece, i|
-      @values[0][i] = piece.new(:w, [0, i])
-      @values[0][SIZE - i - 1] = piece.new(:w, [0, SIZE - i - 1])
-      @values[7][i] = piece.new(:b, [7, i])
-      @values[7][SIZE - i - 1] = piece.new(:b, [7, SIZE - i - 1])
+      all_pieces.push(piece.new(:w, [0, i]))
+      all_pieces.push(piece.new(:w, [0, SIZE - i - 1]))
+      all_pieces.push(piece.new(:b, [7, i]))
+      all_pieces.push(piece.new(:b, [7, SIZE - i - 1]))
     end
-    @values[0][3] = Queen.new(:w, [0, 3])
-    @values[0][4] = King.new(:w, [0, 4])
-    @values[7][3] = Queen.new(:b, [7, 3])
-    @values[7][4] = King.new(:b, [7, 4])
+    [:w, :b].zip([0, 7]).each do |color, i|
+      all_pieces.push(Queen.new(color, [i, 3]))
+      all_pieces.push(King.new(color, [i, 4]))
+    end
+    all_pieces.each { |piece| @values[piece.pos] = piece }
   end
 
   def [](index)
-    if index.is_a?(Integer)
-      @values[index]
-    elsif index.length == 2
-      @values[index[0]][index[1]]
-    else
-      raise TypeError, "Invalid index"
-    end
+    @values[index]
   end
 
   def []=(index, value)
-    if index.is_a?(Array) && index.length == 2
-      @values[index[0]][index[1]] = value
-    else
-      raise TypeError, "Invalid index"
-    end
+    @values[index] = value
   end
 
   def valid_move?(move, color)
@@ -53,13 +48,11 @@ class Board
     elsif empty_selection?(move[:from])
       print "Failed to select a game piece: "
     elsif !belong_to_player?(move[:from], color)
-      print "The selected game piece (#{self[move[:from]].symbol} ) " +
-        "doesn't belong to you: "
-    elsif same_color?(move[:from], move[:to])
-      print "Destination occupied (#{self[move[:from]].symbol} =>" +
-        "#{self[move[:to]].symbol} ): "
-    elsif reachable?(move[:from], move[:to])
-      if checked?(move[:from], move[:to], color)
+      print "That game piece (#{symbol(move[:from])} ) is not yours: "
+    elsif same_color?(*move.values)
+      print "Destination occupied (#{symbol(move).join(" =>")} ): "
+    elsif reachable?(*move.values)
+      if predict_checked?(move[:from], move[:to], color)
         print "You will be checked if you do that: "
       else
         result = true
@@ -69,68 +62,85 @@ class Board
   end
 
   def empty_selection?(pos)
-    self[pos] == EMPTY
+    @values[pos] == EMPTY
   end
 
   def belong_to_player?(pos, color)
-    self[pos].color == color
+    @values[pos].color == color
   end
 
   def same_color?(from, to)
-    self[to].is_a?(Piece) && self[from].color == self[to].color
+    @values[to].is_a?(Piece) && @values[from].color == @values[to].color
   end
 
-  def reachable?(from, to)
+  def reachable?(from, to, quiet = false)
     result = false
-    if self[from].impossible_move?(from, to, self[to].is_a?(Piece))
-      print "The selected game piece (#{self[from].symbol} ) cannot move " +
-        "that way: "
-    elsif self[from].obstructed?(self, from, to)
-      print "Another game piece is in the way: "
+    if @values[from].impossible_move?(to, @values[to].is_a?(Piece))
+      print "#{symbol(index)} cannot move that way: " unless quiet
+    elsif @values[from].obstructed?(@values, to)
+      print "Another game piece is in the way: " unless quiet
     else
       result = true
     end
     result
   end
 
-  def checked?(from, to, color)
-    if king_pos(color) == from
-      p "Self king selected"
-      opponent_pieces(color).any? do |piece|
-        !piece.impossible_move?(piece.pos, to, true)
-      end
-    else
+  def reachable_by_opponent?(to, color)
+    opponent_pieces(color).any? { |piece| reachable?(piece.pos, to, true) }
+  end
 
+  def predict_checked?(from, to, color)
+    original_values = Marshal.dump(@values)
+    make_move({ from: from, to: to})
+
+    result = checked?(color)
+    @values = Marshal.load(original_values)
+    result
+  end
+
+  def checked?(color)
+    reachable_by_opponent?(king_pos(color), color)
+  end
+
+  def escape_checked?(color)
+    player_pieces(color).all? do |piece|
+      piece.all_possible_moves(@values).all? do |to|
+        predict_checked?(piece.pos, to, color)
+      end
     end
+  end
+
+  def all_pieces
+    @values.flatten.select(&is_a_piece?)
   end
 
   def king_pos(color)
-    @values.flatten.select { |node| node.is_a?(Piece) }
-      .find { |piece| piece.symbol == KING[color.to_sym] }.pos
+    all_pieces.find { |piece| piece.symbol == KING[color] }.pos
   end
 
   def opponent_pieces(color)
-    @values.flatten.select { |node| node.is_a?(Piece) }
-      .select { |piece| piece.color != color }
+    all_pieces.select { |piece| piece.color != color }
+  end
+
+  def player_pieces(color)
+    all_pieces.select { |piece| piece.color == color }
   end
 
   def make_move(move)
-    self[move[:to]] = self[move[:from]]
-    self[move[:to]].pos = move[:to]
-    self[move[:from]] = EMPTY
+    @values[move[:to]] = @values[move[:from]]
+    @values[move[:to]].pos = move[:to]
+    @values[move[:from]] = EMPTY
+  end
+
+  def symbol(index)
+    if index.is_a?(Hash)
+      index.values.map { |pos| @values[pos].symbol }
+    else
+      @values[index].symbol
+    end
   end
 
   def to_s
-    result = "\n    #{("A".."H").to_a.join("   ")}\n"
-    result += "  +-#{(["-"] * 8).join("-+-")}-+\n"
-    @values.reverse.each_with_index do |row, i|
-      result += "#{SIZE - i} | "
-      result += row.map do |piece|
-        piece.is_a?(Piece) ? piece.symbol : piece
-      end.join(" | ")
-      result += " | #{SIZE - i}\n"
-      result += "  +-#{(["-"] * 8).join("-+-")}-+\n"
-    end
-    result += "    #{("A".."H").to_a.join("   ")}"
+    print_board(@values, SIZE)
   end
 end
