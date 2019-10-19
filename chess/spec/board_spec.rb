@@ -1,11 +1,13 @@
-require "./lib/board.rb"
-require "./lib/pieces/pieces.rb"
+# frozen_string_literal: true
+
+require './lib/board.rb'
+require './lib/pieces/pieces.rb'
 
 RSpec.describe Board do
-  describe "#include_nil?" do
+  describe '#include_nil?' do
     board = Board.new
 
-    it "returns true when given a hash containing nil in its values" do
+    it 'returns true when given a hash containing nil in its values' do
       moves = [{ from: [1, 2], to: [3, nil] },
                { from: [1, 2], to: [nil, 4] },
                { from: [1, nil], to: [3, 4] },
@@ -16,7 +18,7 @@ RSpec.describe Board do
         expect(board.include_nil?(move)).to eql(true)
       end
     end
-  
+
     it "returns false when given a hash doesn't contain nil values" do
       moves = [{ from: [1, 2], to: [3, 4] },
                { from: [11, 12], to: [13, 14] }]
@@ -26,7 +28,7 @@ RSpec.describe Board do
     end
   end
 
-  describe "::in_bounds?" do
+  describe '::in_bounds?' do
     it "returns true if [i, j] is within the board's limits" do
       8.times do |row|
         8.times do |col|

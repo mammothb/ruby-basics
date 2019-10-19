@@ -1,5 +1,7 @@
-require_relative "board.rb"
-require_relative "player.rb"
+# frozen_string_literal: true
+
+require_relative 'board.rb'
+require_relative 'player.rb'
 
 class Chess
   attr_reader :board
@@ -28,19 +30,17 @@ class Chess
   end
 
   def play
-    unless prepared?
-      puts "Flip a coin to decide who starts first"
-    end
+    puts 'Flip a coin to decide who starts first' unless prepared?
 
     until game_over? do
       puts board
-      puts "Your king is in check" if board.checked?(current_player.color)
+      puts 'Your king is in check' if board.checked?(current_player.color)
       print "#{current_player.name}'s turn (#{current_player.icon} ): "
-      move = convert_to_coordinate(current_player.get_move)
+      move = convert_to_coordinate(current_player.make_move)
       until board.valid_move?(move, current_player.color)
-        move = convert_to_coordinate(current_player.get_move)
+        move = convert_to_coordinate(current_player.make_move)
       end
-      board.make_move(move)
+      board.execute_move(move)
       switch_player
     end
 
@@ -50,7 +50,8 @@ class Chess
   end
 
   def prepared?
-    @players.all? { |p| p.color }
+    # @players.all? { |player| player.color }
+    @players.all?(&:color)
   end
 
   def game_over?
@@ -59,27 +60,24 @@ class Chess
   end
 
   private
-    # Convert move string [col, row] to matrix coordinates [row, col],
-    # e.g., a2 c5 => { from: [1, 0], to: [4, 2] }
-    def convert_to_coordinate(move_string)
-      move_array = move_string.split(" ")
-      [:from, :to].zip(move_array).map do |k, pos|
-        [k, [("1".."8").find_index(pos[1]), ("a".."h").find_index(pos[0])]]
-      end.to_h
-    end
+
+  # Convert move string [col, row] to matrix coordinates [row, col],
+  # e.g., a2 c5 => { from: [1, 0], to: [4, 2] }
+  def convert_to_coordinate(move_string)
+    move_array = move_string.split(' ')
+    %i[from to].zip(move_array).map do |k, pos|
+      [k, [('1'..'8').find_index(pos[1]), ('a'..'h').find_index(pos[0])]]
+    end.to_h
+  end
 end
 
-if __FILE__ == $0
-  p1 = Player.new("Alice")
-  p2 = Player.new("Bob")
+if $PROGRAM_NAME == __FILE__
+  p1 = Player.new('Alice')
+  p2 = Player.new('Bob')
 
   game = Chess.new(p1, p2)
-  game.board[1][4] = Board::EMPTY
-  bishop_1 = Bishop.new(:b, [3, 1])
-  bishop_2 = Bishop.new(:b, [3, 6])
-  game.board[bishop_1.pos] = bishop_1
-  game.board[bishop_2.pos] = bishop_2
-  game.board[2][2] = Pawn.new(:w, [2, 2])
+  pawn = Pawn.new(:b, [3, 2])
+  game.board.place(pawn)
 
   game.flip_coin
   game.play

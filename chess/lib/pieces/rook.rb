@@ -1,5 +1,7 @@
-require_relative "movement.rb"
-require_relative "piece.rb"
+# frozen_string_literal: true
+
+require_relative 'movement.rb'
+require_relative 'piece.rb'
 
 class Rook < Piece
   include Movement::MultiStep

@@ -1,14 +1,18 @@
-require_relative "../board.rb"
-require_relative "piece_helper.rb"
-require_relative "movement.rb"
+# frozen_string_literal: true
+
+require_relative '../board.rb'
+require_relative 'piece_helper.rb'
+require_relative 'movement.rb'
 
 class Piece
+  include PieceHelper
+
   attr_reader :color, :symbol
   attr_accessor :pos
 
   def initialize(symbol, color, pos)
-    unless [:w, :b].include?(color)
-      raise ArgumentError.new("Piece color must be :w or :b")
+    unless %i[w b].include?(color)
+      raise ArgumentError, 'Piece color must be :w or :b'
     end
 
     @symbol = symbol[color]
@@ -28,14 +32,14 @@ class Piece
     color != other_piece.color
   end
 
-  def impossible_move?(to, capture)
+  def impossible_move?(_values, to)
     if distance == 1
       !directions.include?(distance_vector(pos, to))
     elsif pos != to
       # Convert to absolute for easier calculations and since
       # directions for MultiStep movements are mirrored
       direction = distance_vector(pos, to).map(&:abs)
-      min_mag = direction.select{ |x| x != 0 }.min
+      min_mag = direction.reject(&:zero?).min
       !directions.include?(direction.map { |x| (x.to_f / min_mag).ceil })
     else
       true
@@ -47,9 +51,8 @@ class Piece
       direction = distance_vector(pos, to)
       steps = direction.map(&:abs).max
       direction.map! { |x| x / steps }
-      (1...steps).map do |n|
-        pos.zip(direction).map { |x, d| x + d * n }
-      end.any? { |i, j| values[i][j].is_a?(Piece) }
+      (1...steps).map { |n| pos.zip(direction).map { |x, d| x + d * n } }
+                 .any? { |i, j| values[i][j].is_a?(Piece) }
     else
       values[to].is_a?(Piece) && !opponent?(values[to])
     end

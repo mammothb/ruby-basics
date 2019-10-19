@@ -1,36 +1,23 @@
-require_relative "pieces/pieces.rb"
-require_relative "board_helper.rb"
-require_relative "board_values.rb"
+# frozen_string_literal: true
+
+require_relative 'pieces/pieces.rb'
+require_relative 'board_helper.rb'
+require_relative 'board_values.rb'
 
 class Board
-  SIZE = 8.freeze
-  EMPTY = " ".freeze
-  KING = { w: "\u2654", b: "\u265A" }.freeze
-
   include BoardHelper
 
-  def self.in_bounds?(i, j)
-    i.between?(0, SIZE - 1) && j.between?(0, SIZE - 1)
+  SIZE = 8
+  EMPTY = ' '
+  KING = { w: "\u2654", b: "\u265A" }.freeze
+
+  def self.in_bounds?(row, col)
+    row.between?(0, SIZE - 1) && col.between?(0, SIZE - 1)
   end
 
   def initialize
     @values = BoardValues.new(SIZE, EMPTY)
-    all_pieces = []
-    SIZE.times do |i|
-      all_pieces.push(Pawn.new(:w, [1, i]))
-      all_pieces.push(Pawn.new(:b, [6, i]))
-    end
-    [Rook, Knight, Bishop].each_with_index do |piece, i|
-      all_pieces.push(piece.new(:w, [0, i]))
-      all_pieces.push(piece.new(:w, [0, SIZE - i - 1]))
-      all_pieces.push(piece.new(:b, [7, i]))
-      all_pieces.push(piece.new(:b, [7, SIZE - i - 1]))
-    end
-    [:w, :b].zip([0, 7]).each do |color, i|
-      all_pieces.push(Queen.new(color, [i, 3]))
-      all_pieces.push(King.new(color, [i, 4]))
-    end
-    all_pieces.each { |piece| @values[piece.pos] = piece }
+    setup_board
   end
 
   def [](index)
@@ -41,19 +28,50 @@ class Board
     @values[index] = value
   end
 
+  def execute_move(move)
+    @values[move[:to]] = @values[move[:from]]
+    @values[move[:to]].pos = move[:to]
+    @values[move[:from]] = EMPTY
+    handle_en_passant(move) if pawn?.call(@values[move[:to]])
+    reset_opponent_en_passant(@values[move[:to]].color)
+  end
+
+  def handle_en_passant(move)
+    if @values[move[:to]].en_passant_performed?
+      captured_pawn = all_pieces.select(&pawn?).find(&:en_passant_vulnerable?)
+      @values[captured_pawn.pos] = EMPTY
+    end
+
+    return unless move.values.transpose[0].reduce(:-).abs == 2
+
+    @values[move[:to]].two_square_opening = true
+  end
+
+  def reset_opponent_en_passant(color)
+    opponent_pieces(color).select(&pawn?)
+                          .each { |piece| piece.two_square_opening = false }
+  end
+
+  def place(piece)
+    @values[piece.pos] = piece
+  end
+
+  #####################################################################
+  # Boolean methods
+  #####################################################################
   def valid_move?(move, color)
     result = false
     if include_nil?(move)
-      print "Keep within board size (a..h/1..8): "
+      print 'Keep within board size (a..h/1..8): '
     elsif empty_selection?(move[:from])
-      print "Failed to select a game piece: "
+      print 'Failed to select a game piece: '
     elsif !belong_to_player?(move[:from], color)
       print "That game piece (#{symbol(move[:from])} ) is not yours: "
     elsif same_color?(*move.values)
-      print "Destination occupied (#{symbol(move).join(" =>")} ): "
+      print "Destination occupied (#{symbol(move).join(' =>')} ): "
     elsif reachable?(*move.values)
       if predict_checked?(move[:from], move[:to], color)
-        print "You will be checked if you do that: "
+        print 'You will be checked if you do that: '
       else
         result = true
       end
@@ -70,15 +88,15 @@ class Board
   end
 
   def same_color?(from, to)
-    @values[to].is_a?(Piece) && @values[from].color == @values[to].color
+    piece?.call(@values[to]) && @values[from].color == @values[to].color
   end
 
   def reachable?(from, to, quiet = false)
     result = false
-    if @values[from].impossible_move?(to, @values[to].is_a?(Piece))
-      print "#{symbol(index)} cannot move that way: " unless quiet
+    if @values[from].impossible_move?(@values, to)
+      print "#{symbol(from)} cannot move that way: " unless quiet
     elsif @values[from].obstructed?(@values, to)
-      print "Another game piece is in the way: " unless quiet
+      print 'Another game piece is in the way: ' unless quiet
     else
       result = true
     end
@@ -90,11 +108,11 @@ class Board
   end
 
   def predict_checked?(from, to, color)
-    original_values = Marshal.dump(@values)
-    make_move({ from: from, to: to})
+    original_values = Marshal.load(Marshal.dump(@values))
+    execute_move(from: from, to: to)
 
     result = checked?(color)
-    @values = Marshal.load(original_values)
+    @values = original_values
     result
   end
 
@@ -110,8 +128,11 @@ class Board
     end
   end
 
+  #####################################################################
+  # Getters
+  #####################################################################
   def all_pieces
-    @values.flatten.select(&is_a_piece?)
+    @values.flatten.select(&piece?)
   end
 
   def king_pos(color)
@@ -119,17 +140,11 @@ class Board
   end
 
   def opponent_pieces(color)
-    all_pieces.select { |piece| piece.color != color }
+    all_pieces.reject { |piece| piece.color == color }
   end
 
   def player_pieces(color)
     all_pieces.select { |piece| piece.color == color }
-  end
-
-  def make_move(move)
-    @values[move[:to]] = @values[move[:from]]
-    @values[move[:to]].pos = move[:to]
-    @values[move[:from]] = EMPTY
   end
 
   def symbol(index)
@@ -141,6 +156,40 @@ class Board
   end
 
   def to_s
-    print_board(@values, SIZE)
+    result = "\n#{file_indicator}\n#{horizontal_line(SIZE)}"
+    @values.reverse.each_with_index do |row, i|
+      result += left_rank_indicator(SIZE - i) + row.map do |piece|
+        piece?.call(piece) ? piece.symbol : piece
+      end.join(' | ')
+      result += "#{right_rank_indicator(SIZE - i)}\n#{horizontal_line(SIZE)}"
+    end
+    result += file_indicator
+  end
+
+  private
+
+  def setup_board
+    place_piece = proc { |piece| place(piece) }
+    create_pieces.each(&place_piece)
+  end
+
+  def create_pieces
+    pawns.tap do |arr|
+      [Rook, Knight, Bishop, Queen, King].each_with_index do |piece, j|
+        j_rev = SIZE - j - 1
+        %i[w b].zip([0, 7]).each do |c, i|
+          arr << piece.new(c, [i, j])
+          arr << piece.new(c, [i, j_rev]) unless [Queen, King].include?(piece)
+        end
+      end
+    end
+  end
+
+  def pawns
+    [].tap do |arr|
+      SIZE.times do |j|
+        %i[w b].zip([1, 6]).each { |c, i| arr << Pawn.new(c, [i, j]) }
+      end
+    end
   end
 end

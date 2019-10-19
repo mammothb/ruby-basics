@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Player
   attr_reader :name, :color, :icon
 
@@ -9,13 +11,13 @@ class Player
 
   def color=(color)
     @color = color
-    @icon = color == "white" ? "\u2654" : "\u265A"
+    @icon = color == :w ? "\u2654" : "\u265A"
   end
 
-  def get_move
+  def make_move
     move = gets.chomp
     until /^[a-z]\d\s[a-z]\d$/ =~ move
-      print "Please use proper move notation ([a..h][1..8] [a..h][1..8]): "
+      print 'Please use proper move notation ([a..h][1..8] [a..h][1..8]): '
       move = gets.chomp
     end
     move

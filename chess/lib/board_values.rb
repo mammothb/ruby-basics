@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BoardValues
   def initialize(size, initial_value)
     @values = Array.new(size) { Array.new(size, initial_value) }
@@ -6,7 +8,7 @@ class BoardValues
   def [](index)
     if index.is_a?(Integer)
       @values[index]
-    elsif is_coordinate?(index)
+    elsif coordinate?(index)
       @values[index[0]][index[1]]
     else
       invalid_index_error
@@ -14,7 +16,7 @@ class BoardValues
   end
 
   def []=(index, value)
-    if is_coordinate?(index)
+    if coordinate?(index)
       @values[index[0]][index[1]] = value
     else
       invalid_index_error
@@ -30,11 +32,12 @@ class BoardValues
   end
 
   private
-    def is_coordinate?(index)
-      index.is_a?(Array) && index.length == 2
-    end
 
-    def invalid_index_error
-      raise TypeError, "Invalid index!"
-    end
+  def coordinate?(index)
+    index.is_a?(Array) && index.length == 2
+  end
+
+  def invalid_index_error
+    raise TypeError, 'Invalid index!'
+  end
 end
