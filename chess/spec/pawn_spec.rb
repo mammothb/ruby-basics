@@ -1,7 +1,10 @@
-require "./lib/pieces/pieces.rb"
+# frozen_string_literal: true
+
+require './lib/board_values.rb'
+require './lib/pieces/pieces.rb'
 
 RSpec.describe Pawn do
-  describe "#impossible_move?" do
+  describe '#impossible_move?' do
     def moves(row, col, is_on_baseline, is_capturing, is_white)
       directions = [[1, 0]]
       directions += [[2, 0]] if is_on_baseline
@@ -11,56 +14,72 @@ RSpec.describe Pawn do
         (row + i).between?(0, 7) && (col + j).between?(0, 7)
       end.map { |i, j| [row + i, col + j] }
     end
-    
-    it "returns false when destination is reachable" do
+
+    it 'returns false when destination is reachable' do
+      empty_values = BoardValues.new(8, ' ')
       8.times do |row|
         8.times do |col|
           white_piece = Pawn.new(:w, [row, col])
           black_piece = Pawn.new(:b, [row, col])
           moves(row, col, row == 1, false, true).each do |pos|
-            expect(white_piece.impossible_move?(pos, false)).to eql(false)
+            expect(white_piece.impossible_move?(empty_values,
+                                                pos)).to eql(false)
           end
           moves(row, col, row == 6, false, false).each do |pos|
-            expect(black_piece.impossible_move?(pos, false)).to eql(false)
+            expect(black_piece.impossible_move?(empty_values,
+                                                pos)).to eql(false)
           end
           moves(row, col, row == 1, true, true).each do |pos|
-            expect(white_piece.impossible_move?(pos, true)).to eql(false)
+            board_values = BoardValues.new(8, ' ')
+            board_values[pos] = Pawn.new(:b, pos)
+            expect(white_piece.impossible_move?(board_values,
+                                                pos)).to eql(false)
           end
           moves(row, col, row == 1, true, false).each do |pos|
-            expect(black_piece.impossible_move?(pos, true)).to eql(false)
+            board_values = BoardValues.new(8, ' ')
+            board_values[pos] = Pawn.new(:w, pos)
+            expect(black_piece.impossible_move?(board_values,
+                                                pos)).to eql(false)
           end
         end
       end
     end
 
-    it "returns true when destination cannot not be reached" do
+    it 'returns true when destination cannot not be reached' do
       all_moves = (0..7).to_a.repeated_permutation(2).to_a
+      empty_values = BoardValues.new(8, ' ')
       8.times do |row|
         8.times do |col|
           white_piece = Pawn.new(:w, [row, col])
           black_piece = Pawn.new(:b, [row, col])
           (all_moves - moves(row, col, row == 1, false, true) -
               [row, col]).each do |pos|
-            expect(white_piece.impossible_move?(pos, false)).to eql(true)
+            expect(white_piece.impossible_move?(empty_values, pos)).to eql(true)
           end
           (all_moves - moves(row, col, row == 6, false, false) -
               [row, col]).each do |pos|
-            expect(black_piece.impossible_move?(pos, false)).to eql(true)
+            expect(black_piece.impossible_move?(empty_values, pos)).to eql(true)
           end
           (all_moves - moves(row, col, row == 1, true, true) -
               [row, col]).each do |pos|
-            expect(white_piece.impossible_move?(pos, true)).to eql(true)
+            board_values = BoardValues.new(8, ' ')
+            board_values[pos] = Pawn.new(:b, pos)
+            expect(white_piece.impossible_move?(board_values,
+                                                pos)).to eql(true)
           end
           (all_moves - moves(row, col, row == 6, true, false) -
               [row, col]).each do |pos|
-            expect(black_piece.impossible_move?(pos, true)).to eql(true)
+            board_values = BoardValues.new(8, ' ')
+            board_values[pos] = Pawn.new(:w, pos)
+            expect(black_piece.impossible_move?(board_values,
+                                                pos)).to eql(true)
           end
         end
       end
     end
   end
 
-  describe "#obstructed?" do
+  describe '#obstructed?' do
     def moves(row, col)
       directions = [[0, 1], [0, -1], [-1, 0], [1, 0], [1, 1], [-1, 1],
         [-1, -1], [1, -1]]
@@ -101,7 +120,7 @@ RSpec.describe Pawn do
       8.times do |j|
         white_pawn = Pawn.new(:w, [1, j])
         black_pawn = Pawn.new(:b, [6, j])
-        if j % 2 == 0
+        if j.even?
           expect(black_pawn.obstructed?(board, [4, j])).to eql(false)
         else
           expect(white_pawn.obstructed?(board, [3, j])).to eql(false)

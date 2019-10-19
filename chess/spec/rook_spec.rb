@@ -1,7 +1,7 @@
-require "./lib/pieces/pieces.rb"
+require './lib/pieces/pieces.rb'
 
 RSpec.describe Rook do
-  describe "#impossible_move?" do
+  describe '#impossible_move?' do
     def moves(row, col)
       directions = [[0, 1], [0, -1], [-1, 0], [1, 0]]
       result = []
@@ -13,31 +13,31 @@ RSpec.describe Rook do
       result
     end
 
-    it "returns false when destination is reachable" do
+    it 'returns false when destination is reachable' do
       8.times do |row|
         8.times do |col|
           piece = Rook.new(:w, [row, col])
           moves(row, col).each do |pos|
-            expect(piece.impossible_move?(pos, false)).to eql(false)
+            expect(piece.impossible_move?([], pos)).to eql(false)
           end
         end
       end
     end
 
-    it "returns true when destination cannot not be reached" do
+    it 'returns true when destination cannot not be reached' do
       all_moves = (0..7).to_a.repeated_permutation(2).to_a
       8.times do |row|
         8.times do |col|
           piece = Rook.new(:w, [row, col])
           (all_moves - moves(row, col) - [row, col]).each do |pos|
-            expect(piece.impossible_move?(pos, false)).to eql(true)
+            expect(piece.impossible_move?([], pos)).to eql(true)
           end
         end
       end
     end
   end
 
-  describe "#obstructed?" do
+  describe '#obstructed?' do
     def moves(row, col)
       directions = [[0, 1], [0, -1], [-1, 0], [1, 0]]
       result = []
