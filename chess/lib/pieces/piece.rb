@@ -7,8 +7,9 @@ require_relative 'movement.rb'
 class Piece
   include PieceHelper
 
-  attr_reader :color, :symbol
   attr_accessor :pos
+  attr_reader :color, :symbol
+  attr_writer :moved
 
   def initialize(symbol, color, pos)
     unless %i[w b].include?(color)
@@ -18,6 +19,7 @@ class Piece
     @symbol = symbol[color]
     @color = color
     @pos = pos
+    @moved = false
   end
 
   def row
@@ -30,6 +32,10 @@ class Piece
 
   def opponent?(other_piece)
     color != other_piece.color
+  end
+
+  def moved?
+    @moved
   end
 
   def impossible_move?(_values, to)

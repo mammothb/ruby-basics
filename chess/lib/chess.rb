@@ -65,6 +65,8 @@ class Chess
   # e.g., a2 c5 => { from: [1, 0], to: [4, 2] }
   def convert_to_coordinate(move_string)
     move_array = move_string.split(' ')
+    return { castle: move_string.size == 5 ? 0 : 7 } if move_array.size == 1
+
     %i[from to].zip(move_array).map do |k, pos|
       [k, [('1'..'8').find_index(pos[1]), ('a'..'h').find_index(pos[0])]]
     end.to_h
@@ -82,6 +84,9 @@ if $PROGRAM_NAME == __FILE__
   game.flip_coin
   game.play
   # puts game.board
+
+  # p (4...7).to_a[1..-1]
+  # (4...0).each { |i| p i }
 
   # queen = Queen.new(:w, [4, 5])
   # p queen.all_possible_moves

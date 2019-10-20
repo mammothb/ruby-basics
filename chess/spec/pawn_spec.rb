@@ -9,7 +9,7 @@ RSpec.describe Pawn do
       directions = [[1, 0]]
       directions += [[2, 0]] if is_on_baseline
       directions += [[1, 1], [1, -1]] if is_capturing
-      directions.map! { |x| x.map { |i| -i } } unless is_white
+      directions.map! { |x| x.map(&:-@) } unless is_white
       directions.select do |i, j|
         (row + i).between?(0, 7) && (col + j).between?(0, 7)
       end.map { |i, j| [row + i, col + j] }

@@ -31,6 +31,7 @@ class Board
   def execute_move(move)
     @values[move[:to]] = @values[move[:from]]
     @values[move[:to]].pos = move[:to]
+    @values[move[:to]].moved = true
     @values[move[:from]] = EMPTY
     handle_en_passant(move) if pawn?.call(@values[move[:to]])
     reset_opponent_en_passant(@values[move[:to]].color)
@@ -60,6 +61,8 @@ class Board
   # Boolean methods
   #####################################################################
   def valid_move?(move, color)
+    return valid_castling?(move, color) if move.key?(:castle)
+
     result = false
     if include_nil?(move)
       print 'Keep within board size (a..h/1..8): '
@@ -77,6 +80,23 @@ class Board
       end
     end
     result
+  end
+
+  def valid_castling?(move, color)
+    king = king_pos(color)
+    rook = [king[0], move[:castle]]
+    col_between = exclusive_range(king[1], rook[1])
+    p exclusive_range(king[1], rook[1])
+    if @values[king].moved?
+      p 'king moved'
+    elsif !@values[rook].is_a?(Rook) ||
+          (@values[rook].is_a?(Rook) && @values[rook_loc].moved?)
+      p 'rook moved'
+    elsif col_between.any? { |j| @values[king[0]][j].is_a?(Piece) }
+      p 'piece in between'
+    end
+    # Missing predict check for spaces in between
+    false
   end
 
   def empty_selection?(pos)

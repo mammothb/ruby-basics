@@ -19,6 +19,10 @@ module BoardHelper
     move.values.flatten.include?(nil)
   end
 
+  def exclusive_range(start, stop)
+    ([start, stop].min...[start, stop].max).to_a[1..-1]
+  end
+
   def file_indicator
     "    #{('A'..'H').to_a.join('   ')}"
   end

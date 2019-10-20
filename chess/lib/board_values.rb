@@ -34,7 +34,7 @@ class BoardValues
   private
 
   def coordinate?(index)
-    index.is_a?(Array) && index.length == 2
+    index.is_a?(Array) && index.size == 2
   end
 
   def invalid_index_error

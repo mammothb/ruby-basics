@@ -16,7 +16,7 @@ class Player
 
   def make_move
     move = gets.chomp
-    until /^[a-z]\d\s[a-z]\d$/ =~ move
+    until /^[a-z]\d\s[a-z]\d$/ =~ move || ['0-0', '0-0-0'].include?(move)
       print 'Please use proper move notation ([a..h][1..8] [a..h][1..8]): '
       move = gets.chomp
     end
