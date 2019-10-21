@@ -29,20 +29,32 @@ class Board
   end
 
   def execute_move(move)
-    @values[move[:to]] = @values[move[:from]]
-    @values[move[:to]].pos = move[:to]
-    @values[move[:to]].moved = true
-    @values[move[:from]] = EMPTY
+    return execute_castling(move) if move.key?(:king)
+
+    move_piece(move)
     handle_en_passant(move) if pawn?.call(@values[move[:to]])
     reset_opponent_en_passant(@values[move[:to]].color)
   end
 
-  def handle_en_passant(move)
-    if @values[move[:to]].en_passant_performed?
-      captured_pawn = all_pieces.select(&pawn?).find(&:en_passant_vulnerable?)
-      @values[captured_pawn.pos] = EMPTY
-    end
+  def execute_castling(move)
+    move_piece(move[:king])
+    move_piece(move[:rook])
+    reset_opponent_en_passant(@values[move[:king][:to]].color)
+  end
 
+  def handle_en_passant(move)
+    perform_en_passant(move[:to])
+    vulnerable_to_en_passant(move[:to])
+  end
+
+  def perform_en_passant(pos)
+    return unless @values[pos].en_passant_performed?
+
+    captured_pawn = all_pieces.select(&pawn?).find(&:en_passant_vulnerable?)
+    @values[captured_pawn.pos] = EMPTY
+  end
+
+  def vulnerable_to_en_passant(pos)
     return unless move.values.transpose[0].reduce(:-).abs == 2
 
     @values[move[:to]].two_square_opening = true
@@ -57,11 +69,18 @@ class Board
     @values[piece.pos] = piece
   end
 
+  def move_piece(move)
+    @values[move[:to]] = @values[move[:from]]
+    @values[move[:to]].pos = move[:to]
+    @values[move[:to]].moved = true
+    @values[move[:from]] = EMPTY
+  end
+
   #####################################################################
   # Boolean methods
   #####################################################################
   def valid_move?(move, color)
-    return valid_castling?(move, color) if move.key?(:castle)
+    return valid_castling?(move, color) if move.key?(:king)
 
     result = false
     if include_nil?(move)
@@ -84,19 +103,24 @@ class Board
 
   def valid_castling?(move, color)
     king = king_pos(color)
-    rook = [king[0], move[:castle]]
-    col_between = exclusive_range(king[1], rook[1])
-    p exclusive_range(king[1], rook[1])
-    if @values[king].moved?
-      p 'king moved'
-    elsif !@values[rook].is_a?(Rook) ||
-          (@values[rook].is_a?(Rook) && @values[rook_loc].moved?)
-      p 'rook moved'
-    elsif col_between.any? { |j| @values[king[0]][j].is_a?(Piece) }
-      p 'piece in between'
+    col_between = exclusive_range(king[1], move[:rook][:from][1])
+    result = false
+    if checked?(color)
+      print 'King is in check: '
+    elsif @values[king].moved?
+      print 'King was moved this game: '
+    elsif !@values[move[:rook][:from]].is_a?(Rook) ||
+          @values[move[:rook][:from]].moved?
+      print 'Rook was moved this game: '
+    elsif col_between.reject { |j| j == king[1] }
+                     .any? { |j| @values[king[0]][j].is_a?(Piece) }
+      print 'There are pieces between the king and rook: '
+    elsif col_between.any? { |j| predict_checked?(king, [king[0], j], color) }
+      print 'Cannot castle through check: '
+    else
+      result = true
     end
-    # Missing predict check for spaces in between
-    false
+    result
   end
 
   def empty_selection?(pos)

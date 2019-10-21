@@ -20,7 +20,14 @@ module BoardHelper
   end
 
   def exclusive_range(start, stop)
-    ([start, stop].min...[start, stop].max).to_a[1..-1]
+    result = []
+    incr = (stop - start) / (stop - start).abs
+    i = start + incr
+    while i != stop
+      result << i
+      i += incr
+    end
+    result
   end
 
   def file_indicator
