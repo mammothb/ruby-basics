@@ -2,6 +2,8 @@
 
 require_relative './pieces/pieces.rb'
 
+# Various helper method for Board class that does not require access to
+# instance variables
 module BoardHelper
   def piece?
     proc { |node| node.is_a?(Piece) }

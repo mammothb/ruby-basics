@@ -4,6 +4,8 @@ require_relative 'pieces/pieces.rb'
 require_relative 'board_helper.rb'
 require_relative 'board_values.rb'
 
+# This class handles the location of game pieces and checks if move
+# inputs are valid
 class Board
   include BoardHelper
 
@@ -29,22 +31,25 @@ class Board
   end
 
   def execute_move(move)
-    return execute_castling(move) if move.key?(:king)
-
-    move_piece(move)
-    handle_en_passant(move) if pawn?.call(@values[move[:to]])
+    if move.key?(:king)
+      execute_castling(move)
+    elsif pawn?.call(@values[move[:from]])
+      execute_pawn_move(move)
+    else
+      move_piece(move)
+    end
     reset_opponent_en_passant(@values[move[:to]].color)
   end
 
   def execute_castling(move)
     move_piece(move[:king])
     move_piece(move[:rook])
-    reset_opponent_en_passant(@values[move[:king][:to]].color)
   end
 
-  def handle_en_passant(move)
+  def execute_pawn_move(move)
+    move_piece(move)
     perform_en_passant(move[:to])
-    vulnerable_to_en_passant(move[:to])
+    vulnerable_to_en_passant(move)
   end
 
   def perform_en_passant(pos)
@@ -54,7 +59,7 @@ class Board
     @values[captured_pawn.pos] = EMPTY
   end
 
-  def vulnerable_to_en_passant(pos)
+  def vulnerable_to_en_passant(move)
     return unless move.values.transpose[0].reduce(:-).abs == 2
 
     @values[move[:to]].two_square_opening = true

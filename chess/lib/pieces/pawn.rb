@@ -26,8 +26,7 @@ class Pawn < Piece
 
   def impossible_move?(values, to)
     @is_on_baseline = row == @baseline
-    neighbor = values[row][to[1]]
-    @en_passant = neighbor.is_a?(Pawn) && neighbor.en_passant_vulnerable?
+    @en_passant = perform_en_passant?(values[row][to[1]])
     @is_capturing = values[to].is_a?(Piece) || @en_passant
     super
   end
@@ -42,6 +41,10 @@ class Pawn < Piece
       end
     end
     false
+  end
+
+  def perform_en_passant?(node)
+    node.is_a?(Pawn) && node.en_passant_vulnerable?
   end
 
   def en_passant_vulnerable?

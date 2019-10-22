@@ -1,33 +1,34 @@
+# frozen_string_literal: true
+
+require './lib/board.rb'
 require './lib/pieces/pieces.rb'
 
 RSpec.describe King do
+  def all_board_pos
+    (0..7).to_a.repeated_permutation(2).to_a
+  end
+
   describe '#impossible_move?' do
     def moves(row, col)
       [[0, 1], [0, -1], [-1, 0], [1, 0], [1, 1], [-1, 1], [-1, -1],
-       [1, -1]].select do |i, j|
-        (row + i).between?(0, 7) && (col + j).between?(0, 7)
-      end.map { |i, j| [row + i, col + j] }
+       [1, -1]].select { |i, j| Board.in_bounds?(row + i, col + j) }
+        .map { |i, j| [row + i, col + j] }
     end
 
     it 'returns false when destination is reachable' do
-      8.times do |row|
-        8.times do |col|
-          moves(row, col).each do |pos|
-            piece = King.new(:w, [row, col])
-            expect(piece.impossible_move?([], pos)).to eql(false)
-          end
+      all_board_pos.each do |row, col|
+        moves(row, col).each do |pos|
+          piece = King.new(:w, [row, col])
+          expect(piece.impossible_move?([], pos)).to eql(false)
         end
       end
     end
 
     it 'returns true when destination cannot not be reached' do
-      all_moves = (0..7).to_a.repeated_permutation(2).to_a
-      8.times do |row|
-        8.times do |col|
-          piece = King.new(:w, [row, col])
-          (all_moves - moves(row, col) - [row, col]).each do |pos|
-            expect(piece.impossible_move?([], pos)).to eql(true)
-          end
+      all_board_pos.each do |row, col|
+        piece = King.new(:w, [row, col])
+        (all_board_pos - moves(row, col) - [row, col]).each do |pos|
+          expect(piece.impossible_move?([], pos)).to eql(true)
         end
       end
     end
