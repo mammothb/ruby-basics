@@ -9,6 +9,8 @@ require_relative 'board_values.rb'
 class Board
   include BoardHelper
 
+  attr_writer :game
+
   SIZE = 8
   EMPTY = ' '
   KING = { w: "\u2654", b: "\u265A" }.freeze
@@ -19,6 +21,7 @@ class Board
 
   def initialize
     @values = BoardValues.new(SIZE, EMPTY)
+    @game = nil
     setup_board
   end
 
@@ -30,11 +33,11 @@ class Board
     @values[index] = value
   end
 
-  def execute_move(move)
+  def execute_move(move, silent = false)
     if move.key?(:king)
       execute_castling(move)
     elsif pawn?.call(@values[move[:from]])
-      execute_pawn_move(move)
+      execute_pawn_move(move, silent)
     else
       move_piece(move)
     end
@@ -46,10 +49,11 @@ class Board
     move_piece(move[:rook])
   end
 
-  def execute_pawn_move(move)
+  def execute_pawn_move(move, silent)
     move_piece(move)
     perform_en_passant(move[:to])
     vulnerable_to_en_passant(move)
+    promote_pawn(move[:to]) unless silent
   end
 
   def perform_en_passant(pos)
@@ -63,6 +67,21 @@ class Board
     return unless move.values.transpose[0].reduce(:-).abs == 2
 
     @values[move[:to]].two_square_opening = true
+  end
+
+  def promote_pawn(pos)
+    return unless @values[pos].at_last_rank?
+
+    case @game.request_pawn_promotion
+    when 1
+      place(Queen.new(@values[pos].color, pos))
+    when 2
+      place(Knight.new(@values[pos].color, pos))
+    when 3
+      place(Rook.new(@values[pos].color, pos))
+    when 4
+      place(Bishop.new(@values[pos].color, pos))
+    end
   end
 
   def reset_opponent_en_passant(color)
@@ -158,7 +177,7 @@ class Board
 
   def predict_checked?(from, to, color)
     original_values = Marshal.load(Marshal.dump(@values))
-    execute_move(from: from, to: to)
+    execute_move({ from: from, to: to }, true)
 
     result = checked?(color)
     @values = original_values
@@ -170,9 +189,10 @@ class Board
   end
 
   def escape_checked?(color)
-    player_pieces(color).all? do |piece|
-      piece.all_possible_moves(@values).all? do |to|
-        predict_checked?(piece.pos, to, color)
+    player_pieces(color).any? do |piece|
+      from = piece.pos
+      piece.all_possible_moves(@values).any? do |to|
+        !predict_checked?(from, to, color)
       end
     end
   end

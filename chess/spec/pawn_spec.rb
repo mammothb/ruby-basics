@@ -9,9 +9,12 @@ RSpec.describe Pawn do
   end
 
   def moves(row, col, is_on_baseline, is_capturing, is_white)
-    directions = [[1, 0]]
-    directions += [[2, 0]] if is_on_baseline
-    directions += [[1, 1], [1, -1]] if is_capturing
+    if is_capturing
+      directions = [[1, 1], [1, -1]]
+    else
+      directions = [[1, 0]]
+      directions += [[2, 0]] if is_on_baseline
+    end
     directions.map! { |x| x.map(&:-@) } unless is_white
     directions.select do |i, j|
       (row + i).between?(0, 7) && (col + j).between?(0, 7)

@@ -11,6 +11,7 @@ class Pawn < Piece
   def initialize(color, pos = nil)
     super({ w: "\u2659", b: "\u265F" }, color, pos)
     @baseline = @color == :w ? 1 : 6
+    @last_rank = @color == :w ? 7 : 0
     @is_on_baseline = true
     @is_capturing = false
     @two_square_opening = false
@@ -18,9 +19,12 @@ class Pawn < Piece
   end
 
   def directions
-    arr = [[1, 0]]
-    arr += [[2, 0]] if @is_on_baseline
-    arr += [[1, 1], [1, -1]] if @is_capturing
+    if @is_capturing
+      arr = [[1, 1], [1, -1]]
+    else
+      arr = [[1, 0]]
+      arr += [[2, 0]] if @is_on_baseline
+    end
     @color == :w ? arr : arr.map { |x| x.map(&:-@) }
   end
 
@@ -53,5 +57,9 @@ class Pawn < Piece
 
   def en_passant_performed?
     @en_passant
+  end
+
+  def at_last_rank?
+    row == @last_rank
   end
 end

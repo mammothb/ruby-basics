@@ -67,9 +67,11 @@ class Piece
   def all_possible_moves(values)
     (1..distance).map do |n|
       directions.map do |di, dj|
-        i = row + n * di
-        j = col + n * dj
-        [i, j] if Board.in_bounds?(i, j) && !obstructed?(values, [i, j])
+        pos = [row + n * di, col + n * dj]
+        if Board.in_bounds?(*pos) && !obstructed?(values, pos) &&
+           (!values[pos].is_a?(Piece) || opponent?(values[pos]))
+          pos
+        end
       end
     end.flatten(1).compact
   end

@@ -22,4 +22,15 @@ class Player
     end
     move
   end
+
+  def promote_pawn
+    print 'Please choose a promotion: 1) Queen, 2) Knight, 3) Rook, ' \
+          '4) Bishop: '
+    choice = gets.chomp
+    until /^\d$/ =~ choice && choice.to_i.between?(1, 4)
+      print 'Please choose only between 1 to 4: '
+      choice = gets.chomp
+    end
+    choice.to_i
+  end
 end

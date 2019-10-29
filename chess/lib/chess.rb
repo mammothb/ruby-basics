@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'board.rb'
+require_relative 'computer.rb'
 require_relative 'player.rb'
 
 # Main class to control the flow of a chess game
@@ -10,6 +11,7 @@ class Chess
   def initialize(player_one, player_two)
     @players = [player_one, player_two]
     @board = Board.new
+    @board.game = self
     @current_player = 0
   end
 
@@ -37,6 +39,10 @@ class Chess
     game_over_message
   end
 
+  def request_pawn_promotion
+    current_player.promote_pawn
+  end
+
   private
 
   def switch_player
@@ -58,9 +64,13 @@ class Chess
   end
 
   def game_over_message
-    switch_player
     puts board
-    puts "#{current_player.name} is the winner!"
+    if board.checked?(current_player.color)
+      switch_player
+      puts "#{current_player.name} is the winner!"
+    else
+      puts 'Stalemate'
+    end
   end
 
   def prepared?
@@ -68,8 +78,7 @@ class Chess
   end
 
   def game_over?
-    board.checked?(current_player.color) &&
-      !board.escape_checked?(current_player.color)
+    !board.escape_checked?(current_player.color)
   end
 
   # Convert move string [col, row] to matrix coordinates [row, col],
@@ -94,9 +103,16 @@ end
 
 if $PROGRAM_NAME == __FILE__
   p1 = Player.new('Alice')
-  p2 = Player.new('Bob')
+  # p2 = Player.new('Bob')
+  p2 = Computer.new('Bob')
 
   game = Chess.new(p1, p2)
+  p2.board = game.board
+  # 8.times { |i| 8.times { |j| game.board[i][j] = Board::EMPTY } }
+
+  # game.board.place(King.new(:b, [7, 4]))
+  # game.board.place(Pawn.new(:w, [6, 4]))
+  # game.board.place(King.new(:w, [4, 4]))
 
   game.flip_coin
   game.play
